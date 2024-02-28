@@ -1,0 +1,144 @@
+import { StatusBar } from "expo-status-bar";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Button,
+  ActivityIndicator,
+  FlatList,
+  SafeAreaView,
+} from "react-native";
+import { useState } from "react";
+import axios from "axios";
+
+export default function App() {
+  const [user, setUser] = useState();
+  const [customers, setCustomers] = useState();
+  const [loading, setLoading] = useState(false);
+
+  const getAccount = () => {
+    setLoading(true);
+    fetch("https://private-anon-e86cbded7b-itodpbni.apiary-mock.com/account")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Response Get Account", data);
+        setUser(data);
+        setCustomers(null);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        setLoading(false);
+      });
+  };
+
+  const getAllCustomers = () => {
+    setLoading(true);
+    fetch("https://private-anon-e86cbded7b-itodpbni.apiary-mock.com/customers")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Response Get List All Customers", data);
+        setCustomers(data);
+        setUser(null);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        setLoading(false);
+      });
+  };
+
+  const getAccountAxios = () => {
+    setLoading(true);
+    axios
+      .get("https://private-anon-e86cbded7b-itodpbni.apiary-mock.com/account")
+      .then((response) => {
+        console.log("Response Get Account Axios", response.data);
+        setUser(response.data);
+        setCustomers(null);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {user && (
+        <View style={styles.card}>
+          <Text style={styles.textName}>{user && user.user.name}</Text>
+          <Text style={styles.textBalance}>
+            {user &&
+              new Intl.NumberFormat("id-ID", {
+                style: "currency",
+                currency: "IDR",
+              }).format(user.user.balance)}
+          </Text>
+          <Text style={styles.textPhone}>{user && user.user.phone}</Text>
+        </View>
+      )}
+      {customers && (
+        <FlatList
+          data={customers && customers.customers}
+          scrollEnabled={false}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Text style={styles.textName}>{item.name}</Text>
+              <Text>{item.amount}</Text>
+              <Text>{item.notes}</Text>
+            </View>
+          )}
+        />
+      )}
+
+      {loading ? (
+        <ActivityIndicator size="large" />
+      ) : (
+        <View style={styles.container}>
+          <Button title={"Get Account"} onPress={getAccount} />
+          <Button title={"Get Account Axios"} onPress={getAccountAxios} />
+          <Button title={"Get All Customers"} onPress={getAllCustomers} />
+        </View>
+      )}
+
+      <StatusBar style="auto" />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  flatList: {
+    marginTop: 100,
+    padding: 0,
+    marginBottom: 100,
+  },
+  card: {
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    borderWidth: 1,
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  textName: {
+    fontWeight: "bold",
+    fontSize: 20,
+  },
+  textBalance: {
+    fontWeight: "400",
+    fontSize: 16,
+  },
+  textPhone: {
+    fontWeight: "400",
+    fontSize: 16,
+  },
+});
